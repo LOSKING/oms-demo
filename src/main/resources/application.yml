@@ -1,0 +1,64 @@
+# ==========================================
+# OMS 订单管理系统 - Spring Boot 配置文件
+# ==========================================
+
+# 服务器配置
+server:
+  port: 8080                          # 应用端口号
+  servlet:
+    context-path: /                   # 应用上下文路径
+
+# Spring 配置
+spring:
+  # 应用名称
+  application:
+    name: oms-demo
+
+  # ==========================================
+  # 数据库配置（PostgreSQL）
+  # ==========================================
+  datasource:
+    url: jdbc:postgresql://localhost:5433/oms_db    # 数据库连接 URL
+    username: postgres                               # 数据库用户名
+    password: postgres                               # 数据库密码
+    driver-class-name: org.postgresql.Driver         # PostgreSQL 驱动类
+    hikari:
+      maximum-pool-size: 10                          # 连接池最大连接数
+      minimum-idle: 5                                # 连接池最小空闲连接数
+      connection-timeout: 30000                      # 连接超时时间（毫秒）
+
+  # ==========================================
+  # JPA / Hibernate 配置
+  # ==========================================
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect  # 数据库方言
+    hibernate:
+      ddl-auto: update                                # 自动更新表结构（生产环境建议用 validate）
+    show-sql: true                                    # 在控制台打印 SQL 语句（调试用）
+    properties:
+      hibernate:
+        format_sql: true                              # 格式化 SQL 输出（更易读）
+
+  # ==========================================
+  # 初始化 SQL 脚本配置
+  # ==========================================
+  sql:
+    init:
+      mode: never                                     # 使用 DataInitializer 初始化数据
+
+# ==========================================
+# JWT 配置
+# ==========================================
+jwt:
+  secret: OmsDemoSecretKey2026ThisIsAVeryLongSecretKeyForJwtSigning  # JWT 签名密钥（生产环境应使用环境变量）
+  expiration: 86400000                                # Token 过期时间（毫秒），默认 24 小时
+
+# ==========================================
+# 日志配置
+# ==========================================
+logging:
+  level:
+    root: INFO                                        # 根日志级别
+    com.example.oms: DEBUG                            # OMS 包下的日志级别（DEBUG 可看到详细调试信息）
+    org.hibernate.SQL: DEBUG                          # 打印 Hibernate 执行的 SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 打印 SQL 参数值

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - OMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7fa; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info { display: flex; align-items: center; gap: 15px; }
+        .header .user-info span { font-size: 14px; }
+        .btn-logout {
+            padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.3); }
+
+        .nav { background: white; padding: 15px 20px; display: flex; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .nav a { text-decoration: none; color: #666; padding: 8px 16px; border-radius: 6px; font-size: 14px; }
+        .nav a:hover { background: #f0f0f0; }
+        .nav a.active { background: #667eea; color: white; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #667eea; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-warning { background: #ed8936; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        table th { background: #f8f9fa; font-weight: 600; color: #555; }
+        table tr:hover { background: #f8f9fa; }
+
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+        .status-1 { background: #d1fae5; color: #065f46; }
+        .status-0 { background: #fee2e2; color: #991b1b; }
+
+        .role-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-right: 4px; }
+        .role-admin { background: #dbeafe; color: #1e40af; }
+        .role-user { background: #d1fae5; color: #065f46; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 10px; padding: 25px; width: 90%; max-width: 500px; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; z-index: 1000; transform: translateX(120%); transition: transform 0.3s; }
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: #48bb78; }
+        .toast-error { background: #f56565; }
+
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .checkbox-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>OMS 用户管理</h1>
+        <div class="user-info">
+            <span id="currentUser">加载中...</span>
+            <button class="btn-logout" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <div class="nav">
+        <a href="/index.html">订单管理</a>
+        <a href="/users.html" class="active">用户管理</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-title">用户列表</div>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <input type="text" id="searchKeyword" placeholder="搜索用户名/姓名" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                <button class="btn btn-primary" onclick="loadUsers()">搜索</button>
+                <button class="btn btn-success" onclick="openCreateModal()">新增用户</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>邮箱</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+            <div class="pagination">
+                <div id="paginationInfo">共 0 条记录</div>
+                <div>
+                    <button class="btn btn-sm btn-primary" onclick="changePage(-1)" id="btnPrev">上一页</button>
+                    <button class="btn btn-sm btn-primary" onclick="changePage(1)" id="btnNext">下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增用户</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="userForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>用户名 *</label>
+                    <input type="text" id="formUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>密码 <span id="passwordHint">*</span></label>
+                    <input type="password" id="formPassword">
+                </div>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="formRealName">
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="formEmail">
+                </div>
+                <div class="form-group">
+                    <label>角色 *</label>
+                    <div class="checkbox-group" id="roleCheckboxes"></div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-warning" onclick="closeModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentPage = 0;
+        let totalPages = 1;
+        let allRoles = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadUsers();
+            loadRoles();
+        });
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            if (!roles.includes('ROLE_ADMIN')) {
+                showToast('权限不足，需要管理员权限', 'error');
+                setTimeout(() => window.location.href = '/index.html', 2000);
+                return;
+            }
+
+            document.getElementById('currentUser').textContent = `欢迎，${localStorage.getItem('username')}`;
+        }
+
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            };
+        }
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            const options = { method, headers: getAuthHeaders() };
+            if (body) options.body = JSON.stringify(body);
+
+            const response = await fetch(url, options);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || '请求失败');
+            }
+            return data;
+        }
+
+        async function loadUsers() {
+            try {
+                const keyword = document.getElementById('searchKeyword').value;
+                const response = await apiRequest(`/api/users?page=${currentPage}&size=10&keyword=${keyword}`);
+                
+                if (response.success) {
+                    const pageData = response.data;
+                    totalPages = pageData.totalPages || 1;
+                    renderUserTable(pageData.content);
+                    document.getElementById('paginationInfo').textContent = 
+                        `共 ${pageData.totalElements} 条记录，第 ${pageData.number + 1}/${pageData.totalPages} 页`;
+                    document.getElementById('btnPrev').disabled = pageData.number === 0;
+                    document.getElementById('btnNext').disabled = pageData.number >= pageData.totalPages - 1;
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function loadRoles() {
+            try {
+                const response = await apiRequest('/api/users/roles');
+                if (response.success) {
+                    allRoles = response.data;
+                    renderRoleCheckboxes();
+                }
+            } catch (error) {
+                console.error('加载角色失败', error);
+            }
+        }
+
+        function renderUserTable(users) {
+            const tbody = document.getElementById('userTableBody');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #999;">暂无用户数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.realName || '-'}</td>
+                    <td>${user.email || '-'}</td>
+                    <td>${user.roles.map(r => `<span class="role-badge ${r.roleName === 'ROLE_ADMIN' ? 'role-admin' : 'role-user'}">${r.roleName.replace('ROLE_', '')}</span>`).join('')}</td>
+                    <td><span class="status-badge status-${user.status}">${user.status === 1 ? '启用' : '禁用'}</span></td>
+                    <td>${new Date(user.createdAt).toLocaleString('zh-CN')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openEditModal(${user.id})">编辑</button>
+                        <button class="btn btn-sm btn-warning" onclick="toggleStatus(${user.id})">${user.status === 1 ? '禁用' : '启用'}</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRoleCheckboxes() {
+            const container = document.getElementById('roleCheckboxes');
+            container.innerHTML = allRoles.map(role => `
+                <label>
+                    <input type="checkbox" name="roles" value="${role.roleName}">
+                    ${role.roleName.replace('ROLE_', '')}
+                </label>
+            `).join('');
+        }
+
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 0 && newPage < totalPages) {
+                currentPage = newPage;
+                loadUsers();
+            }
+        }
+
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = '新增用户';
+            document.getElementById('editId').value = '';
+            document.getElementById('userForm').reset();
+            document.getElementById('formUsername').disabled = false;
+            document.getElementById('passwordHint').textContent = '*';
+            document.getElementById('formPassword').required = true;
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        async function openEditModal(id) {
+            try {
+                const response = await apiRequest(`/api/users/${id}`);
+                if (response.success) {
+                    const user = response.data;
+                    document.getElementById('modalTitle').textContent = '编辑用户';
+                    document.getElementById('editId').value = user.id;
+                    document.getElementById('formUsername').value = user.username;
+                    document.getElementById('formUsername').disabled = true;
+                    document.getElementById('formPassword').value = '';
+                    document.getElementById('formPassword').required = false;
+                    document.getElementById('passwordHint').textContent = '(留空不修改)';
+                    document.getElementById('formRealName').value = user.realName || '';
+                    document.getElementById('formEmail').value = user.email || '';
+                    
+                    document.querySelectorAll('input[name="roles"]').forEach(cb => {
+                        cb.checked = user.roles.some(r => r.roleName === cb.value);
+                    });
+                    
+                    document.getElementById('userModal').classList.add('active');
+                }
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const selectedRoles = Array.from(document.querySelectorAll('input[name="roles"]:checked')).map(cb => cb.value);
+            
+            if (selectedRoles.length === 0) {
+                showToast('请至少选择一个角色', 'error');
+                return;
+            }
+
+            const data = {
+                username: document.getElementById('formUsername').value,
+                password: document.getElementById('formPassword').value,
+                realName: document.getElementById('formRealName').value,
+                email: document.getElementById('formEmail').value,
+                roleNames: selectedRoles
+            };
+
+            try {
+                if (id) {
+                    await apiRequest(`/api/users/${id}`, 'PUT', data);
+                    showToast('用户更新成功', 'success');
+                } else {
+                    if (!data.password) {
+                        showToast('请输入密码', 'error');
+                        return;
+                    }
+                    await apiRequest('/api/users', 'POST', data);
+                    showToast('用户创建成功', 'success');
+                }
+                closeModal();
+                loadUsers();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        });
+
+        async function toggleStatus(id) {
+            try {
+                await apiRequest(`/api/users/${id}/toggle-status`, 'PATCH');
+                showToast('状态已更新', 'success');
+                loadUsers();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('确定要删除此用户吗？')) return;
+            try {
+                await apiRequest(`/api/users/${id}`, 'DELETE');
+                showToast('用户已删除', 'success');
+                loadUsers();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
