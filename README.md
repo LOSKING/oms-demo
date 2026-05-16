@@ -1,3 +1,4 @@
+仅仅是抛砖引玉
 # OMS 订单管理系统 Demo
 
 基于 Spring Boot + PostgreSQL 的订单管理系统示例项目。
