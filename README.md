@@ -1,5 +1,6 @@
-仅仅是抛砖引玉
 # OMS (Order Management System) 企业级业务与系统集成模拟中台
+
+[English](./README_EN.md) | 简体中文
 
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12%2B-blue.svg)](https://www.postgresql.org/)
