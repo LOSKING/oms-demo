@@ -74,4 +74,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("productName") String productName,
             @Param("status") Integer status,
             Pageable pageable);
+
+    /**
+     * 获取最新创建的的10条订单列表
+     * @return 订单列表
+     */
+    List<Order> findTop10ByOrderByCreatedAtDesc();
 }

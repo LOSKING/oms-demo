@@ -73,6 +73,7 @@ public class SecurityConfig {
                 // 公开访问的路径（不需要登录）
                 .requestMatchers(
                     "/api/auth/**",        // 认证相关接口
+                    "/api/simulator/**",   // 模拟器相关接口
                     "/login.html",         // 登录页面
                     "/error"               // 错误页面
                 ).permitAll()

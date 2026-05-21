@@ -78,6 +78,43 @@ public class Order {
     private Integer status = 0;
 
     /**
+     * 订单类型
+     * RETAIL_SALE, PURCHASE_ORDER, PURCHASE_BILL, INBOUND_ORDER, OUTBOUND_ORDER, TRANSFER_ORDER, COLLABORATIVE_ORDER, SELF_PICKUP_ORDER
+     */
+    @Column(name = "order_type", length = 64)
+    private String orderType = "RETAIL_SALE";
+
+    /**
+     * 商品编码
+     */
+    @Column(name = "product_code", length = 32)
+    private String productCode;
+
+    /**
+     * 源仓库编码
+     */
+    @Column(name = "source_warehouse", length = 32)
+    private String sourceWarehouse;
+
+    /**
+     * 目标仓库编码
+     */
+    @Column(name = "target_warehouse", length = 32)
+    private String targetWarehouse;
+
+    /**
+     * 关联父订单编号
+     */
+    @Column(name = "parent_order_no", length = 64)
+    private String parentOrderNo;
+
+    /**
+     * 操作员
+     */
+    @Column(name = "operator", length = 64)
+    private String operator;
+
+    /**
      * 备注信息
      */
     @Column(name = "remark", length = 512)

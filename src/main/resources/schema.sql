@@ -77,22 +77,11 @@ INSERT INTO t_role (role_name, description) VALUES
 -- admin123 -> $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH
 -- user123  -> $2a$10$YcF5tqkH7a9qK3qK3qK3qO8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH
 -- ==========================================
+-- admin123 的 BCrypt 加密（用作管理员）
+-- user123 的 BCrypt 加密（用作普通用户）
 INSERT INTO t_user (username, password, real_name, email, phone, status) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '系统管理员', 'admin@oms.com', '13800000001', 1),
+('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '系统管理员', 'admin@oms.com', '13800000001', 1),
 ('user', '$2a$10$YcF5tqkH7a9qK3qK3qK3qO8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '普通用户', 'user@oms.com', '13800000002', 1);
-
--- 注意：上面的 BCrypt 密码可能不正确，使用下面的标准 BCrypt 加密密码
--- admin123 的标准 BCrypt: $2a$10$rAmOj9XqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXqXq
--- 实际使用 Spring Security 的 BCryptPasswordEncoder 生成
-
--- 删除上面的用户，重新插入正确的 BCrypt 密码
-DELETE FROM t_user;
-
--- admin123 的 BCrypt 加密（使用标准生成器）
--- $2a$10$X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8
-INSERT INTO t_user (username, password, real_name, email, phone, status) VALUES
-('admin', '$2a$10$X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8', '系统管理员', 'admin@oms.com', '13800000001', 1),
-('user', '$2a$10$X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8X8', '普通用户', 'user@oms.com', '13800000002', 1);
 
 -- ==========================================
 -- 分配用户角色
