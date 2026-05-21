@@ -33,21 +33,21 @@
 
 ```mermaid
 graph TD
-    subgraph 零售与分销渠道
+    subgraph channel["零售与分销渠道"]
         Core[自营小程序 / 核心自渠]
         POS[门店 POS 终端]
     end
 
-    subgraph 核心中台 (中央大脑)
+    subgraph center["核心中台 (中央大脑)"]
         OMS[OMS 业务中台]
     end
 
-    subgraph 供应链与仓储
+    subgraph supply["供应链与仓储"]
         SRM[SRM 供应链平台]
         WMS[顺丰 WMS 物流仓]
     end
 
-    subgraph 财务合规
+    subgraph finance["财务合规"]
         Finance[财务合同/核算系统]
     end
 
@@ -69,9 +69,9 @@ graph TD
 
 ```mermaid
 sequenceDiagram
-    participant OMS as OMS 中台
-    participant SRM as SRM 供应链
-    participant WMS as 顺丰 WMS 仓
+    participant OMS as "OMS 中台"
+    participant SRM as "SRM 供应链"
+    participant WMS as "顺丰 WMS 仓"
     OMS->>SRM: 1. 推送采购订单 (PO)
     SRM->>OMS: 2. 供应商确认发货 (生成采购单PB & 入库单IN)
     OMS->>WMS: 3. 下发奇门入库单 (Qimen Inbound)
@@ -84,10 +84,10 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SRM as SRM 供应链
-    participant OMS as OMS 中台
-    participant WMS as 顺丰 WMS 仓
-    participant Fin as 财务系统
+    participant SRM as "SRM 供应链"
+    participant OMS as "OMS 中台"
+    participant WMS as "顺丰 WMS 仓"
+    participant Fin as "财务系统"
     SRM->>OMS: 1. 门店提报需求汇总推送 PO
     SRM->>OMS: 2. 供应商发货推送送货单
     OMS->>WMS: 3. 中台推送奇门入库单 (IN)
@@ -101,11 +101,11 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SRM as SRM (门店端)
-    participant OMS as OMS 中台 (总部端)
-    participant WMS as 顺丰 WMS 仓
-    participant POS as 门店 POS 终端
-    participant Fin as 财务系统
+    participant SRM as "SRM (门店端)"
+    participant OMS as "OMS 中台 (总部端)"
+    participant WMS as "顺丰 WMS 仓"
+    participant POS as "门店 POS 终端"
+    participant Fin as "财务系统"
     SRM->>OMS: 1. 门店发起内部采购订单 (PO)
     Note over OMS: 中台自动级联生成销售订单 (SO) 并审核
     OMS->>WMS: 2. 生成销售单 (SB) 并推送出库单 (OUT)
@@ -120,9 +120,9 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client as 线上小程序
-    participant OMS as OMS 中台 (BOM引擎)
-    participant POS as 门店 POS 终端
+    participant Client as "线上小程序"
+    participant OMS as "OMS 中台 (BOM引擎)"
+    participant POS as "门店 POS 终端"
     Client->>OMS: 1. 支付下单 (自提订单，已审核)
     POS->>OMS: 2. 扫码核销，前台取货 (产生零售小票)
     Note over OMS: 触发BOM拆解引擎：门店扣减原料库存 (面料/绣线/辅料)
