@@ -1,7 +1,6 @@
 package com.example.oms.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -63,10 +62,8 @@ public class Order {
 
     /**
      * 订单金额
-     * DecimalMin: 金额必须 >= 0.01
      */
     @NotNull(message = "金额不能为空")
-    @DecimalMin(value = "0.01", message = "金额必须大于 0")
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 

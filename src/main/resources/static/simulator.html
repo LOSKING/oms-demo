@@ -803,19 +803,14 @@
                             <div class="terminal-dot td-yellow"></div>
                             <div class="terminal-dot td-green"></div>
                         </div>
-                        <div class="terminal-title">Integration Payload Terminal</div>
-                        <button class="btn-custom btn-secondary-custom" style="padding: 2px 8px; font-size: 10px; border-radius: 4px;" onclick="clearTerminal()">Clear</button>
+                        <div class="terminal-title">api integration log terminal</div>
                     </div>
-                    <div class="terminal-body" id="terminalBody">
-                        <div class="terminal-line" style="color: #6a9955;">// 点击“下一步”执行模拟，此处会输出实时的系统对接 JSON Payload 报文</div>
-                    </div>
+                    <div class="terminal-body" id="terminalBody"></div>
                 </div>
 
-            </div>
-
-        </div>
-
-    </div>
+            </div> <!-- End of .dashboard-grid -->
+        </div> <!-- End of .main-workarea -->
+    </div> <!-- End of .app-container -->
 
     <script>
         // ==========================================
@@ -827,7 +822,7 @@
                 name: "B2B 采购直发 WMS 流程",
                 desc: "采购订单由中台推送SRM完成发货，自动推送WMS入库并同步回传",
                 steps: [
-                    { title: "创建采购订单", desc: "open-OMS中台发起向供应商采购可乐的需求，创建PO-2026-0001订单并推送到SRM系统", systems: ["oms", "srm"], paths: ["path-srm-oms"] },
+                    { title: "创建采购订单", desc: "open-OMS中台发起向供应商采购智能 5G 手机的需求，创建PO-2026-0001订单并推送到SRM系统", systems: ["oms", "srm"], paths: ["path-srm-oms"] },
                     { title: "供应商确认并推入库", desc: "供应商在SRM发货，自动回传中台生成采购单PB与入库单IN，并通过奇门接口推送顺丰WMS", systems: ["srm", "oms", "wms"], paths: ["path-srm-oms", "path-oms-wms"] },
                     { title: "WMS收货与上架确认", desc: "顺丰WMS完成入库，回传OMS入库确认。OMS自动增加WMS仓对应库存，归档采购单", systems: ["wms", "oms"], paths: ["path-oms-wms"] }
                 ]
@@ -837,19 +832,19 @@
                 name: "三方供应链采购与财务协同",
                 desc: "SRM汇总需求，供应商发货进WMS。入库回传同步结算，触发财务应收付生成",
                 steps: [
-                    { title: "提报需求汇总PO", desc: "门店在SRM提报橙汁采购需求，系统自动汇总并向中台推送总部采购订单PO-2026-0002", systems: ["srm", "oms"], paths: ["path-srm-oms"] },
+                    { title: "提报需求汇总PO", desc: "门店在SRM提报潮流休闲卫衣采购需求，系统自动汇总并向中台推送总部采购订单PO-2026-0002", systems: ["srm", "oms"], paths: ["path-srm-oms"] },
                     { title: "供应商发货与下发WMS", desc: "供应商在SRM发货，推送中台生成采购单PB并推送顺丰WMS生成待入库单", systems: ["srm", "oms", "wms"], paths: ["path-srm-oms", "path-oms-wms"] },
                     { title: "入库完成与财务往来记账", desc: "WMS入库上架回传。中台同步数据到SRM，SRM生成应付单推送财务合同系统记账", systems: ["wms", "oms", "srm", "finance"], paths: ["path-oms-wms", "path-srm-oms", "path-oms-finance"] }
                 ]
             },
             {
                 id: 3,
-                name: "加盟店向总部采购流程",
+                name: "直营店向总部采购流程",
                 desc: "门店向总部发起内部采购，触发总部销售发货、WMS出库以及门店采购与入库的级联自动生成",
                 steps: [
-                    { title: "门店申请与自动销售审核", desc: "门店在SRM提报爆米花需求，推送中台自动生成门店PO，并关联生成总部销售订单(SO)自动审核", systems: ["srm", "oms"], paths: ["path-srm-oms"] },
+                    { title: "门店申请与自动销售审核", desc: "门店在SRM提报纯棉床上用品四件套(组合装)需求，推送中台自动生成门店PO，并关联生成总部销售订单(SO)自动审核", systems: ["srm", "oms"], paths: ["path-srm-oms"] },
                     { title: "发货出库下发WMS", desc: "中台生成销售单并派发顺丰WMS配货，产生出库单并利用奇门进行推送", systems: ["oms", "wms"], paths: ["path-oms-wms"] },
-                    { title: "WMS出库回传与级联入库", desc: "WMS出库回传，OMS扣除WMS库存，级联生成门店PB和入库单，门店一键入库后产生财务调拨账", systems: ["wms", "oms", "pos", "finance"], paths: ["path-oms-wms", "path-oms-pos", "path-oms-finance"] }
+                    { title: "WMS出库回传与级联入库", desc: "WMS出库回传，OMS扣除WMS库存，级联生成门店PB与入库单，门店一键入库后产生财务调拨账", systems: ["wms", "oms", "pos", "finance"], paths: ["path-oms-wms", "path-oms-pos", "path-oms-finance"] }
                 ]
             },
             {
@@ -857,8 +852,8 @@
                 name: "门店之间调拨业务",
                 desc: "直营店A调出商品到加盟店B，中台产生协同订单。调出即扣库，调入一键确认入库，两端对接财务调拨",
                 steps: [
-                    { title: "发起调拨扣减库存", desc: "调出店A在POS端录入调拨单调出可乐10听，中台协同生成CO协同订单并审核，扣除A店库存", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
-                    { title: "财务调拨账单预记", desc: "中台自动将调拨出库完成的状态推送到财务合同系统的‘卖品调拨单’进行调账", systems: ["oms", "finance"], paths: ["path-oms-finance"] },
+                    { title: "发起调拨扣减库存", desc: "调出店A在POS端录入调拨单调出智能 5G 手机10台，中台协同生成CO协同订单并审核，扣除A店库存", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
+                    { title: "财务调拨账单预记", desc: "中台自动将调拨出库完成的状态推送到财务合同系统的‘商品调拨单’进行调账", systems: ["oms", "finance"], paths: ["path-oms-finance"] },
                     { title: "调入店确认与流程关闭", desc: "调入店B到货后在POS端一键入库，增加B店库存，中台完结所有单据，并推送财务关闭账期", systems: ["pos", "oms", "finance"], paths: ["path-oms-pos", "path-oms-finance"] }
                 ]
             },
@@ -867,9 +862,9 @@
                 name: "自渠订单取货与BOM拆解",
                 desc: "线上付款单推中台，到店自提触发BOM配方自动扣减原料库存。线上退款启动逆向拆卸恢复",
                 steps: [
-                    { title: "付款自提单推中台", desc: "自营渠道(美团/小程序)已付款爆米花自提订单推送到中台自提池，订单状态为‘已审核’", systems: ["core", "oms"], paths: ["path-core-oms"] },
-                    { title: "核销自提与BOM原料扣库存", desc: "到店POS扫码核销取货。系统触发BOM拆解引擎：根据1桶爆米花配比，扣减门店仓玉米粒、椰子油、砂糖库存", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
-                    { title: "自渠退货退款与BOM复原", desc: "小程序申请退款。中台作废订单产生退货单，触发BOM复原引擎，反向将玉米粒等原料库存全额归还门店仓", systems: ["core", "oms"], paths: ["path-core-oms", "path-oms-pos"] }
+                    { title: "付款自提单推中台", desc: "自营渠道(美团/小程序)已付款四件套自提订单推送到中台自提池，订单状态为‘已审核’", systems: ["core", "oms"], paths: ["path-core-oms"] },
+                    { title: "核销自提与BOM原料扣库存", desc: "到店POS扫码核销取货。系统触发BOM拆解引擎：根据1套四件套配比，扣减门店仓面料、绣线、辅料库存", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
+                    { title: "自渠退货退款与BOM复原", desc: "小程序申请退款。中台作废订单产生退货单，触发BOM复原引擎，反向将面料等原料库存全额归还门店仓", systems: ["core", "oms"], paths: ["path-core-oms", "path-oms-pos"] }
                 ]
             },
             {
@@ -877,8 +872,8 @@
                 name: "门店智能盘点业务",
                 desc: "店长提交盘点。open-OMS中台根据商品属性，自动剔除无需盘点的组合品与零库存品。生成盘盈盘亏表",
                 steps: [
-                    { title: "创建盘点与商品过滤", desc: "店长张三创建门店月盘任务。中台自动剔除组装属性为是的复合品(爆米花)，下发真实物料明细", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
-                    { title: "录入实盘保存差异", desc: "录入实盘数(玉米盘亏2kg, 椰油盘盈1kg)并保存。中台实时计算差异并展示盘点盈亏预览", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
+                    { title: "创建盘点与商品过滤", desc: "店长张三创建门店月盘任务。中台自动剔除组装属性为是的复合品(四件套)，下发真实物料明细", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
+                    { title: "录入实盘保存差异", desc: "录入实盘数(全棉面料盘亏2m, 包装辅料盘盈1pcs)并保存。中台实时计算差异并展示盘点盈亏预览", systems: ["pos", "oms"], paths: ["path-oms-pos"] },
                     { title: "审批完成并核销库存", desc: "店长最终确认审批。中台调整门店仓库存，生成最终的‘盘盈盘亏差异调整单’记录", systems: ["pos", "oms"], paths: ["path-oms-pos"] }
                 ]
             }
@@ -1102,18 +1097,26 @@
             
             // 商品名称映射定义 (前端只读呈现)
             const pMap = {
-                "P001": { name: "爆米花玉米粒", type: "SINGLE", label: "单品" },
-                "P002": { name: "专用细白砂糖", type: "SINGLE", label: "单品" },
-                "P003": { name: "精炼椰子油", type: "SINGLE", label: "单品" },
-                "P004": { name: "经典85oz爆米花(组合装)", type: "COMPOSITE", label: "复合" },
-                "P005": { name: "可口可乐330ml", type: "SINGLE", label: "单品" },
-                "P006": { name: "100%纯鲜橙汁300ml", type: "SINGLE", label: "单品" }
+                "P001": { name: "全棉四件套面料", type: "SINGLE", label: "单品" },
+                "P002": { name: "枕套穿缝绣线", type: "SINGLE", label: "单品" },
+                "P003": { name: "拉链及包装辅料", type: "SINGLE", label: "单品" },
+                "P004": { name: "纯棉床上用品四件套(组合装)", type: "COMPOSITE", label: "复合" },
+                "P005": { name: "智能 5G 手机", type: "SINGLE", label: "单品" },
+                "P006": { name: "潮流休闲卫衣", type: "SINGLE", label: "单品" }
             };
 
             whStocks.sort((a, b) => a.productCode.localeCompare(b.productCode)).forEach(s => {
                 const info = pMap[s.productCode] || { name: "未知商品", type: "SINGLE", label: "未知" };
                 const badgeClass = info.type === "COMPOSITE" ? "stock-badge-composite" : "stock-badge-single";
-                const unit = s.productCode === "P004" ? "bucket" : (s.productCode === "P005" ? "can" : (s.productCode === "P006" ? "bottle" : "kg"));
+                const unitMap = {
+                    "P001": "m",
+                    "P002": "axis",
+                    "P003": "pcs",
+                    "P004": "set",
+                    "P005": "unit",
+                    "P006": "pcs"
+                };
+                const unit = unitMap[s.productCode] || "pcs";
 
                 // 检查与旧库存数据对比，若有变化执行动画高亮
                 let diffClass = "";

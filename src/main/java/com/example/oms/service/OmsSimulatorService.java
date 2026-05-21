@@ -47,6 +47,15 @@ public class OmsSimulatorService {
             }
         }
 
+        // 强制执行删除，避免 Hibernate 先执行 Insert 导致唯一约束冲突
+        integrationLogRepository.flush();
+        stockRepository.flush();
+        bomRepository.flush();
+        productRepository.flush();
+        warehouseRepository.flush();
+        orderRepository.flush();
+
+
         // 2. 初始化仓库
         createWarehouse("WH_SRM_VIRTUAL", "SRM供应商虚拟仓", "LOGICAL");
         createWarehouse("WH_open-OMS_CENTRAL", "open-OMS集团中央仓", "LOGICAL");
@@ -55,17 +64,17 @@ public class OmsSimulatorService {
         createWarehouse("WH_POS_STORE_B", "OMS加盟店B仓", "LOCAL_POS");
 
         // 3. 初始化商品
-        createProduct("P001", "爆米花玉米粒", "SINGLE", new BigDecimal("10.00"), "kg");
-        createProduct("P002", "专用细白砂糖", "SINGLE", new BigDecimal("5.00"), "kg");
-        createProduct("P003", "精炼椰子油", "SINGLE", new BigDecimal("15.00"), "kg");
-        createProduct("P004", "经典85oz爆米花(组合装)", "COMPOSITE", new BigDecimal("25.00"), "bucket");
-        createProduct("P005", "可口可乐330ml", "SINGLE", new BigDecimal("6.00"), "can");
-        createProduct("P006", "100%纯鲜橙汁300ml", "SINGLE", new BigDecimal("8.00"), "bottle");
+        createProduct("P001", "全棉四件套面料", "SINGLE", new BigDecimal("30.00"), "m");
+        createProduct("P002", "枕套穿缝绣线", "SINGLE", new BigDecimal("10.00"), "axis");
+        createProduct("P003", "拉链及包装辅料", "SINGLE", new BigDecimal("15.00"), "pcs");
+        createProduct("P004", "纯棉床上用品四件套(组合装)", "COMPOSITE", new BigDecimal("300.00"), "set");
+        createProduct("P005", "智能 5G 手机", "SINGLE", new BigDecimal("3000.00"), "unit");
+        createProduct("P006", "潮流休闲卫衣", "SINGLE", new BigDecimal("150.00"), "pcs");
 
-        // 4. 初始化 BOM 关系 (1桶85oz爆米花 = 0.2kg玉米粒 + 0.05kg白糖 + 0.03kg椰子油)
-        createBOM("P004", "P001", new BigDecimal("0.2000"));
+        // 4. 初始化 BOM 关系 (1套四件套 = 2.5m面料 + 0.05轴绣线 + 1.0pcs辅料)
+        createBOM("P004", "P001", new BigDecimal("2.5000"));
         createBOM("P004", "P002", new BigDecimal("0.0500"));
-        createBOM("P004", "P003", new BigDecimal("0.0300"));
+        createBOM("P004", "P003", new BigDecimal("1.0000"));
 
         // 5. 初始化库存
         // 中央仓
@@ -190,15 +199,15 @@ public class OmsSimulatorService {
     // ==========================================================
     private void runScenario1(int step) {
         if (step == 1) {
-            // open-OMS中新建采购订单 (PO-2026-0001)，向供应商采购可乐
+            // open-OMS中新建采购订单 (PO-2026-0001)，向供应商采购智能 5G 手机
             Order po = new Order();
             po.setOrderNo("SIM-PO-2026-0001");
             po.setOrderType("PURCHASE_ORDER");
             po.setCustomerName("中央直采供应商");
-            po.setProductName("可口可乐330ml");
+            po.setProductName("智能 5G 手机");
             po.setProductCode("P005");
             po.setQuantity(200);
-            po.setAmount(new BigDecimal("1200.00"));
+            po.setAmount(new BigDecimal("600000.00"));
             po.setSourceWarehouse("WH_SRM_VIRTUAL");
             po.setTargetWarehouse("WH_WMS_SF");
             po.setStatus(0); // 待确认
@@ -207,7 +216,7 @@ public class OmsSimulatorService {
             orderRepository.save(po);
 
             logIntegration(1, "open-OMS", "SRM", "PO_PUSH_API",
-                    "{\"orderNo\": \"SIM-PO-2026-0001\", \"supplier\": \"中央直采供应商\", \"items\": [{\"code\": \"P005\", \"qty\": 200, \"price\": 6.00}]}",
+                    "{\"orderNo\": \"SIM-PO-2026-0001\", \"supplier\": \"中央直采供应商\", \"items\": [{\"code\": \"P005\", \"qty\": 200, \"price\": 3000.00}]}",
                     "SUCCESS", "采购订单已推送到SRM系统，等待供应商确认发货");
         } else if (step == 2) {
             // 供应商在SRM确认，并推送采购单 pb 与入库单到 open-OMS
@@ -283,7 +292,7 @@ public class OmsSimulatorService {
 
                 logIntegration(1, "WMS", "open-OMS", "QIMEN_INBOUND_CONFIRM_CALLBACK",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0001\", \"actualQty\": 200, \"status\": \"COMPLETED\"}",
-                        "SUCCESS", "顺丰WMS完成收货上架，向open-OMS回传收货确认。open-OMS自动更新库存(P005可乐 +200)且标记采购单完成");
+                        "SUCCESS", "顺丰WMS完成收货上架，向open-OMS回传收货确认。open-OMS自动更新库存(P005智能 5G 手机 +200)且标记采购单完成");
             }
         }
     }
@@ -298,10 +307,10 @@ public class OmsSimulatorService {
             po.setOrderNo("SIM-PO-2026-0002");
             po.setOrderType("PURCHASE_ORDER");
             po.setCustomerName("OMS总部供应链");
-            po.setProductName("100%纯鲜橙汁300ml");
+            po.setProductName("潮流休闲卫衣");
             po.setProductCode("P006");
             po.setQuantity(100);
-            po.setAmount(new BigDecimal("800.00"));
+            po.setAmount(new BigDecimal("15000.00"));
             po.setSourceWarehouse("WH_SRM_VIRTUAL");
             po.setTargetWarehouse("WH_WMS_SF");
             po.setStatus(0);
@@ -383,14 +392,14 @@ public class OmsSimulatorService {
 
                 logIntegration(2, "WMS", "open-OMS", "QIMEN_INBOUND_CALLBACK",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0002\", \"status\": \"COMPLETED\"}",
-                        "SUCCESS", "顺丰WMS入库确认，open-OMS中台更新库存(P006橙汁 +100)并归档采购单");
+                        "SUCCESS", "顺丰WMS入库确认，open-OMS中台更新库存(P006潮流休闲卫衣 +100)并归档采购单");
 
                 logIntegration(2, "open-OMS", "SRM", "SRM_INBOUND_STATUS_PUSH",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0002\", \"status\": \"COMPLETED\"}",
                         "SUCCESS", "open-OMS中台将已完成的入库状态同步推送回SRM系统");
 
                 logIntegration(2, "SRM", "FINANCE", "FIN_AP_BILL_CREATE",
-                        "{\"apBillNo\": \"AP-2026-0002\", \"contractId\": \"CON-FILM-12\", \"amount\": 800.00}",
+                        "{\"apBillNo\": \"AP-2026-0002\", \"contractId\": \"CON-RETAIL-12\", \"amount\": 15000.00}",
                         "SUCCESS", "SRM系统验证入库单无误，将结算单据推送到财务合同系统，自动生成应付款项(AP)");
             }
         }
@@ -406,10 +415,10 @@ public class OmsSimulatorService {
             po.setOrderNo("SIM-CPO-2026-0003");
             po.setOrderType("PURCHASE_ORDER");
             po.setCustomerName("OMS直营店A");
-            po.setProductName("经典85oz爆米花(组合装)");
+            po.setProductName("纯棉床上用品四件套(组合装)");
             po.setProductCode("P004");
             po.setQuantity(50);
-            po.setAmount(new BigDecimal("1250.00"));
+            po.setAmount(new BigDecimal("15000.00"));
             po.setSourceWarehouse("WH_WMS_SF");
             po.setTargetWarehouse("WH_POS_STORE");
             po.setStatus(1); // 自动确认
@@ -421,10 +430,10 @@ public class OmsSimulatorService {
             so.setOrderNo("SIM-SO-2026-0003");
             so.setOrderType("SALES_ORDER");
             so.setCustomerName("OMS直营店A");
-            so.setProductName("经典85oz爆米花(组合装)");
+            so.setProductName("纯棉床上用品四件套(组合装)");
             so.setProductCode("P004");
             so.setQuantity(50);
-            so.setAmount(new BigDecimal("1250.00"));
+            so.setAmount(new BigDecimal("15000.00"));
             so.setSourceWarehouse("WH_WMS_SF");
             so.setTargetWarehouse("WH_POS_STORE");
             so.setParentOrderNo(po.getOrderNo());
@@ -491,7 +500,7 @@ public class OmsSimulatorService {
                     orderRepository.save(so);
                 }
 
-                // open-OMS 扣减 WMS 物理仓库存 (爆米花组合装扣减)
+                // open-OMS 扣减 WMS 物理仓库存 (四件套组合装扣减)
                 Optional<Stock> sfStockOpt = stockRepository.findByWarehouseCodeAndProductCode("WH_WMS_SF", "P004");
                 if (sfStockOpt.isPresent()) {
                     Stock sfStock = sfStockOpt.get();
@@ -504,10 +513,10 @@ public class OmsSimulatorService {
                 pb.setOrderNo("SIM-PB-2026-0003");
                 pb.setOrderType("PURCHASE_BILL");
                 pb.setCustomerName("OMS直营店A");
-                pb.setProductName("经典85oz爆米花(组合装)");
+                pb.setProductName("纯棉床上用品四件套(组合装)");
                 pb.setProductCode("P004");
                 pb.setQuantity(50);
-                pb.setAmount(new BigDecimal("1250.00"));
+                pb.setAmount(new BigDecimal("15000.00"));
                 pb.setSourceWarehouse("WH_WMS_SF");
                 pb.setTargetWarehouse("WH_POS_STORE");
                 pb.setParentOrderNo("SIM-CPO-2026-0003");
@@ -518,10 +527,10 @@ public class OmsSimulatorService {
                 inbound.setOrderNo("SIM-IN-2026-0003");
                 inbound.setOrderType("INBOUND_ORDER");
                 inbound.setCustomerName("OMS直营店A");
-                inbound.setProductName("经典85oz爆米花(组合装)");
+                inbound.setProductName("纯棉床上用品四件套(组合装)");
                 inbound.setProductCode("P004");
                 inbound.setQuantity(50);
-                inbound.setAmount(new BigDecimal("1250.00"));
+                inbound.setAmount(new BigDecimal("15000.00"));
                 inbound.setSourceWarehouse("WH_WMS_SF");
                 inbound.setTargetWarehouse("WH_POS_STORE");
                 inbound.setParentOrderNo(pb.getOrderNo());
@@ -542,11 +551,11 @@ public class OmsSimulatorService {
 
                 logIntegration(3, "POS", "open-OMS", "STORE_POS_INBOUND",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0003\", \"warehouse\": \"WH_POS_STORE\"}",
-                        "SUCCESS", "直营店在open-OMSPOS终端一键入库，系统增加门店零售库存(P004爆米花 +50)");
+                        "SUCCESS", "直营店在open-OMSPOS终端一键入库，系统增加门店零售库存(P004四件套 +50)");
 
                 logIntegration(3, "open-OMS", "FINANCE", "MERCHANDISE_TRANSFER_PUSH",
-                        "{\"billNo\": \"FIN-TO-2026-003\", \"type\": \"STORE_BUY_HEADQUARTERS\", \"amount\": 1250.00}",
-                        "SUCCESS", "中台推送结算确认，生成卖品调拨单，送财务合同系统结算，完成交易闭环");
+                        "{\"billNo\": \"FIN-TO-2026-003\", \"type\": \"STORE_BUY_HEADQUARTERS\", \"amount\": 15000.00}",
+                        "SUCCESS", "中台推送结算确认，生成商品调拨单，送财务合同系统结算，完成交易闭环");
             }
         }
     }
@@ -561,10 +570,10 @@ public class OmsSimulatorService {
             to.setOrderNo("SIM-TO-2026-0004");
             to.setOrderType("TRANSFER_ORDER");
             to.setCustomerName("时光零售(加盟店B)");
-            to.setProductName("可口可乐330ml");
+            to.setProductName("智能 5G 手机");
             to.setProductCode("P005");
             to.setQuantity(10);
-            to.setAmount(new BigDecimal("60.00"));
+            to.setAmount(new BigDecimal("30000.00"));
             to.setSourceWarehouse("WH_POS_STORE");
             to.setTargetWarehouse("WH_POS_STORE_B");
             to.setStatus(1); // 自动确认
@@ -576,10 +585,10 @@ public class OmsSimulatorService {
             co.setOrderNo("SIM-CO-2026-0004");
             co.setOrderType("COLLABORATIVE_ORDER");
             co.setCustomerName("时光零售(加盟店B)");
-            co.setProductName("可口可乐330ml");
+            co.setProductName("智能 5G 手机");
             co.setProductCode("P005");
             co.setQuantity(10);
-            co.setAmount(new BigDecimal("60.00"));
+            co.setAmount(new BigDecimal("30000.00"));
             co.setSourceWarehouse("WH_POS_STORE");
             co.setTargetWarehouse("WH_POS_STORE_B");
             co.setParentOrderNo(to.getOrderNo());
@@ -592,10 +601,10 @@ public class OmsSimulatorService {
             outbound.setOrderNo("SIM-OUT-2026-0004");
             outbound.setOrderType("OUTBOUND_ORDER");
             outbound.setCustomerName("时光零售(加盟店B)");
-            outbound.setProductName("可口可乐330ml");
+            outbound.setProductName("智能 5G 手机");
             outbound.setProductCode("P005");
             outbound.setQuantity(10);
-            outbound.setAmount(new BigDecimal("60.00"));
+            outbound.setAmount(new BigDecimal("30000.00"));
             outbound.setSourceWarehouse("WH_POS_STORE");
             outbound.setTargetWarehouse("WH_POS_STORE_B");
             outbound.setParentOrderNo(to.getOrderNo());
@@ -613,12 +622,12 @@ public class OmsSimulatorService {
 
             logIntegration(4, "POS", "open-OMS", "TRANSFER_OUT_CREATE",
                     "{\"transferOrderNo\": \"SIM-TO-2026-0004\", \"from\": \"WH_POS_STORE\", \"to\": \"WH_POS_STORE_B\"}",
-                    "SUCCESS", "直营店A在open-OMSPOS端提交调拨单，中台响应并生成对应的协同订单(CO-2026-0004)与出库单。扣除直营店A库存(P005可乐 -10)");
+                    "SUCCESS", "直营店A在open-OMSPOS端提交调拨单，中台响应并生成对应的协同订单(CO-2026-0004)与出库单。扣除直营店A库存(P005智能 5G 手机 -10)");
         } else if (step == 2) {
-            // open-OMS 将调拨出库单推送到财务合同系统的卖品调拨单
+            // open-OMS 将调拨出库单推送到财务合同系统的商品调拨单
             logIntegration(4, "open-OMS", "FINANCE", "FIN_TRANSFER_BILL_PUSH",
-                    "{\"billNo\": \"FIN-TO-2026-004\", \"type\": \"OUT_POST\", \"amount\": 60.00, \"status\": \"OUT_COMPLETED\"}",
-                    "SUCCESS", "open-OMS中台将完成的调拨出库信息推送给财务合同系统的‘卖品调拨单’，进行财务账目预记");
+                    "{\"billNo\": \"FIN-TO-2026-004\", \"type\": \"OUT_POST\", \"amount\": 30000.00, \"status\": \"OUT_COMPLETED\"}",
+                    "SUCCESS", "open-OMS中台将完成的调拨出库信息推送给财务合同系统的‘商品调拨单’，进行财务账目预记");
         } else if (step == 3) {
             // 调入店 B POS 一键入库，完成所有单据，并增加 B 仓库存，并推财务确认
             Optional<Order> coOpt = orderRepository.findByOrderNo("SIM-CO-2026-0004");
@@ -632,10 +641,10 @@ public class OmsSimulatorService {
                 inbound.setOrderNo("SIM-IN-2026-0004");
                 inbound.setOrderType("INBOUND_ORDER");
                 inbound.setCustomerName("时光零售(加盟店B)");
-                inbound.setProductName("可口可乐330ml");
+                inbound.setProductName("智能 5G 手机");
                 inbound.setProductCode("P005");
                 inbound.setQuantity(10);
-                inbound.setAmount(new BigDecimal("60.00"));
+                inbound.setAmount(new BigDecimal("30000.00"));
                 inbound.setSourceWarehouse("WH_POS_STORE");
                 inbound.setTargetWarehouse("WH_POS_STORE_B");
                 inbound.setParentOrderNo(co.getOrderNo());
@@ -653,11 +662,11 @@ public class OmsSimulatorService {
 
                 logIntegration(4, "POS", "open-OMS", "TRANSFER_IN_CONFIRM",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0004\", \"warehouse\": \"WH_POS_STORE_B\"}",
-                        "SUCCESS", "加盟店B收到货，在open-OMSPOS操作‘一键入库’。open-OMS中台同步完成入库单和协同订单。增加加盟店B库存(P005可乐 +10)");
+                        "SUCCESS", "加盟店B收到货，在open-OMSPOS操作‘一键入库’。open-OMS中台同步完成入库单和协同订单。增加加盟店B库存(P005智能 5G 手机 +10)");
 
                 logIntegration(4, "open-OMS", "FINANCE", "FIN_TRANSFER_BILL_COMPLETE",
                         "{\"billNo\": \"FIN-TO-2026-004\", \"type\": \"IN_POST\", \"status\": \"CLOSED\"}",
-                        "SUCCESS", "open-OMS中台将调拨入库完成的状态同步推送给财务系统，关闭该卖品调拨结算流程");
+                        "SUCCESS", "open-OMS中台将调拨入库完成的状态同步推送给财务系统，关闭该商品调拨结算流程");
             }
         }
     }
@@ -667,15 +676,15 @@ public class OmsSimulatorService {
     // ==========================================================
     private void runScenario5(int step) {
         if (step == 1) {
-            // 线上平台支付订单 SP-2026-0005，买爆米花，推送open-OMS自提订单中（审核状态）
+            // 线上平台支付订单 SP-2026-0005，买四件套，推送open-OMS自提订单中（审核状态）
             Order sp = new Order();
             sp.setOrderNo("SIM-SP-2026-0005");
             sp.setOrderType("SELF_PICKUP_ORDER");
             sp.setCustomerName("美团线上用户");
-            sp.setProductName("经典85oz爆米花(组合装)");
+            sp.setProductName("纯棉床上用品四件套(组合装)");
             sp.setProductCode("P004");
             sp.setQuantity(5);
-            sp.setAmount(new BigDecimal("125.00"));
+            sp.setAmount(new BigDecimal("1500.00"));
             sp.setSourceWarehouse("WH_POS_STORE"); // 取货地点
             sp.setStatus(1); // 审核状态
             sp.setOperator("核心小程序");
@@ -726,7 +735,7 @@ public class OmsSimulatorService {
                 orderRepository.save(ad);
 
                 // BOM 扣除库存
-                // P004爆米花 x 5 -> 玉米粒 1kg, 白糖 0.25kg, 椰子油 0.15kg
+                // P004四件套 x 5 -> 面料 12.5m, 绣线 0.25轴, 辅料 5.0pcs
                 List<BOM> bomList = bomRepository.findByCompositeProductCode("P004");
                 for (BOM bom : bomList) {
                     BigDecimal totalDeduct = bom.getQuantityRatio().multiply(new BigDecimal(sp.getQuantity()));
@@ -743,8 +752,8 @@ public class OmsSimulatorService {
                         "SUCCESS", "顾客到店展示核销码，门店POS确认核销，推送中台已核销状态并自动生成零售小票");
 
                 logIntegration(5, "open-OMS", "POS", "BOM_DISASSEMBLY_DEDUCT",
-                        "{\"assemblyNo\": \"SIM-AD-2026-0005\", \"composite\": \"P004\", \"qty\": 5, \"rawDeduction\": {\"P001(玉米)\": 1.0, \"P002(白糖)\": 0.25, \"P003(椰油)\": 0.15}}",
-                        "SUCCESS", "【BOM拆解引擎】识别出P004经典爆米花为组装商品。系统自动创建组装单并扣减原材料库存，不直接扣减Popcorn成品(门店不常备成品爆米花，按原料配方随用随产)");
+                        "{\"assemblyNo\": \"SIM-AD-2026-0005\", \"composite\": \"P004\", \"qty\": 5, \"rawDeduction\": {\"P001(面料)\": 12.5, \"P002(绣线)\": 0.25, \"P003(辅料)\": 5.0}}",
+                        "SUCCESS", "【BOM拆解引擎】识别出P004四件套组合装为组装商品。系统自动创建组装单并扣减原材料库存，不直接扣减四件套成品(门店根据销售配方随用随产)");
             }
         } else if (step == 3) {
             // 用户在小程序发起退货 -> 生成零售退单 RET-2026-0005 -> 触发 BOM 逆向复原：原材料加回
@@ -798,12 +807,12 @@ public class OmsSimulatorService {
                 }
 
                 logIntegration(5, "CORE", "open-OMS", "ONLINE_REFUND_REQUEST",
-                        "{\"originalOrderNo\": \"SIM-SP-2026-0005\", \"refundNo\": \"SIM-REF-005\", \"amount\": 125.00}",
+                        "{\"originalOrderNo\": \"SIM-SP-2026-0005\", \"refundNo\": \"SIM-REF-005\", \"amount\": 1500.00}",
                         "SUCCESS", "美团线上渠道提交退款申请，中台自动作废对应销售，并生成零售退单(SIM-RET-2026-0005)");
 
                 logIntegration(5, "open-OMS", "POS", "BOM_REASSEMBLY_RESTORE",
-                        "{\"disassemblyNo\": \"SIM-AD-RET-2026-0005\", \"composite\": \"P004\", \"qty\": 5, \"rawRestoration\": {\"P001(玉米)\": 1.0, \"P002(白糖)\": 0.25, \"P003(椰油)\": 0.15}}",
-                        "SUCCESS", "【BOM复原引擎】系统启动逆向拆卸机制，将P004包含的原材料消耗量全部退回到门店零售仓仓库(P001 +1kg, P002 +0.25kg, P003 +0.15kg)");
+                        "{\"disassemblyNo\": \"SIM-AD-RET-2026-0005\", \"composite\": \"P004\", \"qty\": 5, \"rawRestoration\": {\"P001(面料)\": 12.5, \"P002(绣线)\": 0.25, \"P003(辅料)\": 5.0}}",
+                        "SUCCESS", "【BOM复原引擎】系统启动逆向拆卸机制，将P004包含的原材料消耗量全部退回到门店零售仓仓库(P001 +12.5m, P002 +0.25轴, P003 +5.0pcs)");
             }
         }
     }
@@ -813,7 +822,7 @@ public class OmsSimulatorService {
     // ==========================================================
     private void runScenario6(int step) {
         if (step == 1) {
-            // 门店 POS 新建盘点单，过滤掉组合品（组合品爆米花无库存，以原材料实物盘点为准）与 0 库存商品
+            // 门店 POS 新建盘点单，过滤掉组合品（组合品四件套无库存，以原材料实物盘点为准）与 0 库存商品
             Order st = new Order();
             st.setOrderNo("SIM-ST-2026-0006");
             st.setOrderType("TRANSFER_ORDER"); // 借用
@@ -825,19 +834,19 @@ public class OmsSimulatorService {
             st.setSourceWarehouse("WH_POS_STORE");
             st.setStatus(0); // 盘点中
             st.setOperator("店长张三");
-            st.setRemark("过滤掉复合品爆米花(P004)");
+            st.setRemark("过滤掉复合品四件套(P004)");
             orderRepository.save(st);
 
             logIntegration(6, "POS", "open-OMS", "STOCK_COUNT_START",
                     "{\"countNo\": \"SIM-ST-2026-0006\", \"scope\": \"MONTHLY_FULL_COUNT\", \"warehouse\": \"WH_POS_STORE\"}",
-                    "SUCCESS", "门店店长发起月度盘点，中台过滤剔除组合商品(P004爆米花无库存)及0库存物料，下发需盘点商品明细");
+                    "SUCCESS", "门店店长发起月度盘点，中台过滤剔除组合商品(P004四件套无库存)及0库存物料，下发需盘点商品明细");
         } else if (step == 2) {
             // 输入实盘数并保存，计算预盈亏
             // 书面数: P001: 50, P003: 15
             // 实盘数: P001: 48 (亏), P003: 16 (盈)
             logIntegration(6, "POS", "open-OMS", "STOCK_COUNT_SAVE",
                     "{\"countNo\": \"SIM-ST-2026-0006\", \"countedItems\": [{\"code\": \"P001\", \"bookQty\": 50, \"physicalQty\": 48}, {\"code\": \"P003\", \"bookQty\": 15, \"physicalQty\": 16}]}",
-                    "SUCCESS", "员工录入盘点数据并保存。中台实时计算差异盈亏：玉米粒P001盈亏 -2kg(盘亏)，椰子油P003盈亏 +1kg(盘盈)");
+                    "SUCCESS", "员工录入盘点数据并保存。中台实时计算差异盈亏：全棉四件套面料P001盈亏 -2m(盘亏)，拉链及包装辅料P003盈亏 +1pcs(盘盈)");
         } else if (step == 3) {
             // 审核完成 -> 调整库存 -> 产生盘盈盘亏单
             Optional<Order> stOpt = orderRepository.findByOrderNo("SIM-ST-2026-0006");
@@ -854,7 +863,7 @@ public class OmsSimulatorService {
                 ivb.setProductName("盘亏: P001(-2.0), 盘盈: P003(+1.0)");
                 ivb.setProductCode("P001,P003");
                 ivb.setQuantity(2);
-                ivb.setAmount(new BigDecimal("-5.00")); // -2*10 + 1*15 = -5
+                ivb.setAmount(new BigDecimal("-45.00")); // -2*30 + 1*15 = -45
                 ivb.setSourceWarehouse("WH_POS_STORE");
                 ivb.setStatus(3);
                 ivb.setOperator("系统自动生成");
