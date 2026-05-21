@@ -262,9 +262,9 @@ public class OmsSimulatorService {
                         "{\"purchaseBillNo\": \"SIM-PB-2026-0001\", \"parentPO\": \"SIM-PO-2026-0001\", \"status\": \"DELIVERED\"}",
                         "SUCCESS", "供应商确认发货，中台自动生成采购单(PB)并创建待入库单");
 
-                logIntegration(1, "open-OMS", "WMS", "QIMEN_INBOUND_CREATE_API",
-                        "{\"qimenOrderNo\": \"QIMEN-IN-001\", \"omsInboundNo\": \"SIM-IN-2026-0001\", \"warehouse\": \"WH_WMS_SF\", \"items\": [{\"code\": \"P005\", \"qty\": 200}]}",
-                        "SUCCESS", "open-OMS通过奇门接口将入库单推送到顺丰WMS仓进行收货操作");
+                logIntegration(1, "open-OMS", "WMS", "THIRDPARTY_INBOUND_CREATE_API",
+                        "{\"thirdPartyOrderNo\": \"3PARTY-IN-001\", \"omsInboundNo\": \"SIM-IN-2026-0001\", \"warehouse\": \"WH_WMS_SF\", \"items\": [{\"code\": \"P005\", \"qty\": 200}]}",
+                        "SUCCESS", "open-OMS通过三方接口将入库单推送到顺丰WMS仓进行收货操作");
             }
         } else if (step == 3) {
             // WMS收货完成，回传open-OMS
@@ -290,7 +290,7 @@ public class OmsSimulatorService {
                     stockRepository.save(stock);
                 }
 
-                logIntegration(1, "WMS", "open-OMS", "QIMEN_INBOUND_CONFIRM_CALLBACK",
+                logIntegration(1, "WMS", "open-OMS", "THIRDPARTY_INBOUND_CONFIRM_CALLBACK",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0001\", \"actualQty\": 200, \"status\": \"COMPLETED\"}",
                         "SUCCESS", "顺丰WMS完成收货上架，向open-OMS回传收货确认。open-OMS自动更新库存(P005智能 5G 手机 +200)且标记采购单完成");
             }
@@ -363,7 +363,7 @@ public class OmsSimulatorService {
                         "{\"shippingBillNo\": \"SRM-SHIP-002\", \"orderNo\": \"SIM-PO-2026-0002\"}",
                         "SUCCESS", "供应商在SRM系统发货，生成送货单推送中台，中台生成采购单并通知顺丰WMS入库");
 
-                logIntegration(2, "open-OMS", "WMS", "QIMEN_INBOUND_CREATE_API",
+                logIntegration(2, "open-OMS", "WMS", "THIRDPARTY_INBOUND_CREATE_API",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0002\", \"warehouse\": \"WH_WMS_SF\"}",
                         "SUCCESS", "open-OMS中台将入库单SIM-IN-2026-0002推送到顺丰WMS系统");
             }
@@ -390,7 +390,7 @@ public class OmsSimulatorService {
                     stockRepository.save(stock);
                 }
 
-                logIntegration(2, "WMS", "open-OMS", "QIMEN_INBOUND_CALLBACK",
+                logIntegration(2, "WMS", "open-OMS", "THIRDPARTY_INBOUND_CALLBACK",
                         "{\"omsInboundNo\": \"SIM-IN-2026-0002\", \"status\": \"COMPLETED\"}",
                         "SUCCESS", "顺丰WMS入库确认，open-OMS中台更新库存(P006潮流休闲卫衣 +100)并归档采购单");
 
@@ -480,9 +480,9 @@ public class OmsSimulatorService {
                 outbound.setOperator("open-OMS中台");
                 orderRepository.save(outbound);
 
-                logIntegration(3, "open-OMS", "WMS", "QIMEN_OUTBOUND_CREATE_API",
+                logIntegration(3, "open-OMS", "WMS", "THIRDPARTY_OUTBOUND_CREATE_API",
                         "{\"omsOutboundNo\": \"SIM-OUT-2026-0003\", \"warehouse\": \"WH_WMS_SF\", \"items\": [{\"code\": \"P004\", \"qty\": 50}]}",
-                        "SUCCESS", "总部执行发货，open-OMS中台生成销售单(SB)及出库单(OUT)，并通过奇门接口推送给顺丰WMS配货");
+                        "SUCCESS", "总部执行发货，open-OMS中台生成销售单(SB)及出库单(OUT)，并通过三方接口推送给顺丰WMS配货");
             }
         } else if (step == 3) {
             // WMS 出库确认 -> open-OMS自动生成直营店采购单pb与入库单 -> 直营店POS一键入库 -> 状态完成 -> 财务调拨账单
@@ -545,7 +545,7 @@ public class OmsSimulatorService {
                     stockRepository.save(storeStock);
                 }
 
-                logIntegration(3, "WMS", "open-OMS", "QIMEN_OUTBOUND_CONFIRM_CALLBACK",
+                logIntegration(3, "WMS", "open-OMS", "THIRDPARTY_OUTBOUND_CONFIRM_CALLBACK",
                         "{\"omsOutboundNo\": \"SIM-OUT-2026-0003\", \"actualQty\": 50}",
                         "SUCCESS", "顺丰WMS出库回传，open-OMS扣减WMS库存，并自动生成直营店采购单(PB)和入库单(IN)");
 

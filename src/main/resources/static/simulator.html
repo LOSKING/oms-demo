@@ -823,7 +823,7 @@
                 desc: "采购订单由中台推送SRM完成发货，自动推送WMS入库并同步回传",
                 steps: [
                     { title: "创建采购订单", desc: "open-OMS中台发起向供应商采购智能 5G 手机的需求，创建PO-2026-0001订单并推送到SRM系统", systems: ["oms", "srm"], paths: ["path-srm-oms"] },
-                    { title: "供应商确认并推入库", desc: "供应商在SRM发货，自动回传中台生成采购单PB与入库单IN，并通过奇门接口推送顺丰WMS", systems: ["srm", "oms", "wms"], paths: ["path-srm-oms", "path-oms-wms"] },
+                    { title: "供应商确认并推入库", desc: "供应商在SRM发货，自动回传中台生成采购单PB与入库单IN，并通过三方接口推送顺丰WMS", systems: ["srm", "oms", "wms"], paths: ["path-srm-oms", "path-oms-wms"] },
                     { title: "WMS收货与上架确认", desc: "顺丰WMS完成入库，回传OMS入库确认。OMS自动增加WMS仓对应库存，归档采购单", systems: ["wms", "oms"], paths: ["path-oms-wms"] }
                 ]
             },
@@ -843,7 +843,7 @@
                 desc: "门店向总部发起内部采购，触发总部销售发货、WMS出库以及门店采购与入库的级联自动生成",
                 steps: [
                     { title: "门店申请与自动销售审核", desc: "门店在SRM提报纯棉床上用品四件套(组合装)需求，推送中台自动生成门店PO，并关联生成总部销售订单(SO)自动审核", systems: ["srm", "oms"], paths: ["path-srm-oms"] },
-                    { title: "发货出库下发WMS", desc: "中台生成销售单并派发顺丰WMS配货，产生出库单并利用奇门进行推送", systems: ["oms", "wms"], paths: ["path-oms-wms"] },
+                    { title: "发货出库下发WMS", desc: "中台生成销售单并派发顺丰WMS配货，产生出库单并利用三方接口进行推送", systems: ["oms", "wms"], paths: ["path-oms-wms"] },
                     { title: "WMS出库回传与级联入库", desc: "WMS出库回传，OMS扣除WMS库存，级联生成门店PB与入库单，门店一键入库后产生财务调拨账", systems: ["wms", "oms", "pos", "finance"], paths: ["path-oms-wms", "path-oms-pos", "path-oms-finance"] }
                 ]
             },
